@@ -7,6 +7,9 @@ import (
 	"gorm.io/gorm"
 )
 
+/*
+Function to be executed before the creation
+*/
 func (w *Website) BeforeCreate(tx *gorm.DB) error {
 	if w.ID == "" {
 		w.ID = uuid.NewString()
@@ -26,11 +29,11 @@ type Website struct {
 	IsNotTrusted      *bool        `json:"is_not_trusted" gorm:"not null;default:true"`
 	IsOfficial        bool         `json:"is_official" gorm:"default:false"`
 	SteamLoginPresent bool         `json:"steam_login_present" gorm:"default:false"`
-	Verified          string       `json:"verified" gorm:"default:not_verified;not null"` //verified / not verified, if it was verified by an admin
-	RiskScore         float64      `json:"risk_score" gorm:"default:0.0"`                 //0 - 100 of the sum of everything, if official this is 100, if not check every var we register about website + occurences
-	RiskLevel         string       `json:"risk_level" gorm:"size:16;default:unknown"`     // unknown, low, medium, high, critical
-	Status            string       `json:"status" gorm:"size:16;default:active"`          // active, inactive, blocked, archived
-	Notes             *string      `json:"notes" gorm:"type:text"`                        //Internal notes
+	Verified          bool         `json:"verified" gorm:"default:false;not null"`    //if it was verified by an admin
+	RiskScore         float64      `json:"risk_score" gorm:"default:0.0"`             //0 - 100 of the sum of everything, if official this is 100, if not check every var we register about website + occurences
+	RiskLevel         string       `json:"risk_level" gorm:"size:16;default:unknown"` // unknown, none (only fo official steam websites), low, medium, high, critical
+	Status            string       `json:"status" gorm:"size:16;default:active"`      // active, inactive, blocked, archived
+	Notes             *string      `json:"notes" gorm:"type:text"`                    //Internal notes
 	Occurrences       []Occurrence `json:"occurrences" gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	CreatedAt         time.Time    `json:"created_at"`
 	UpdatedAt         time.Time    `json:"updated_at"`

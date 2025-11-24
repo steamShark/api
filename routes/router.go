@@ -19,10 +19,12 @@ func SetupRouter(websiteController *websiteControllers.WebsiteController, occurr
 		v1.GET("/websites", websiteController.ListWebsites)
 		v1.GET("/websites/:identification", websiteController.GetWebsite)
 		//Extension
-		v1.GET("/websites/extension", websiteController.GetWebsitesExtension)
+		v1.GET("/websites/extension", websiteController.GetExtensions)
 
 		//POSTS
 		v1.POST("/websites", websiteController.CreateWebsite)
+		//VERIFY RECORDS
+		v1.POST("/websites/:id/verify", websiteController.VerifyWebsiteById)
 
 		//PUT
 		v1.PUT("/websites/:id", websiteController.UpdateWebsite)

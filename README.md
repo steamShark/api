@@ -38,13 +38,42 @@ A Go (Gin + GORM) API for managing **websites**, and **occurrences** used by the
 
 ### Current Version 1.0
 
-- [] Finish base api
-    - [] CRUD for websites
+- [x] Finish base api
+    - [x] CRUD for websites
     - [] Add occurences to websites
 - [] Make base documentation for API
 
 
 You can see the <a href="./CHANGELOG.md">changelog</a> on github.
+
+## 🚀 Development
+
+```bash
+go run .
+```
+
+App runs at [http://localhost:8800](http://localhost:8800)
+
+## 🐳 Docker
+
+### Dockerfile
+
+To build and run with Dockerfile:
+
+```bash
+docker build -t steamshark-api .
+docker run -p steamshark-api
+```
+
+Visit [http://localhost:8800](http://localhost:8800)
+
+### Docker compose
+
+You can simply run
+```bash
+docker compose up --build -d
+```
+Visit [http://localhost:8800](http://localhost:8800)
 
 ## 🤝Contributing
 

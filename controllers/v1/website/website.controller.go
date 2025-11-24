@@ -1,7 +1,9 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 
@@ -24,7 +26,18 @@ func NewWebsiteController(s *services.WebsiteService) *WebsiteController {
 	return &WebsiteController{Service: s}
 }
 
-// POST /websites
+/*
+Create website, POST method
+
+Needs:
+  - in: Website dto for creations
+
+Returns:
+  - 200: already exists
+  - 201: created
+  - 400: bad request
+  - 500: internal server error
+*/
 func (ctrl *WebsiteController) CreateWebsite(c *gin.Context) {
 	var in dtos.WebsiteCreationInput
 	if err := c.ShouldBindJSON(&in); err != nil {
@@ -32,25 +45,62 @@ func (ctrl *WebsiteController) CreateWebsite(c *gin.Context) {
 		return
 	}
 
-	//If both is scam and is Official are true
-	/* if *in.IsNotTrusted && *in.IsOfficial {
-		utils.Error(c, http.StatusBadRequest, "is_scam cannot be true and is_officiial be true at the same time")
+	// Basic input validation
+	if strings.TrimSpace(in.Domain) == "" {
+		utils.Error(c, http.StatusBadRequest, "domain is required")
 		return
-	} */
+	}
+	//add the rest of input validation for required fields
 
-	created, err := ctrl.Service.CreateWebsite(c.Request.Context(), in)
+	/* VERIFICATIONS */
+	//Verify if everything relate to the url are correct
+	if in.URL != nil {
+		parsed, err := url.Parse(*in.URL)
+		if err != nil || parsed.Scheme == "" || parsed.Host == "" {
+			utils.Error(c, http.StatusBadRequest, "Invalid URL")
+			return
+		}
+
+		// Domain consistency
+		if !strings.Contains(parsed.Host, in.Domain) {
+			utils.Error(c, http.StatusBadRequest, "Domain does not match URL")
+			return
+		}
+
+		// Tld consistency
+		if !strings.Contains(parsed.Host, in.TLD) {
+			utils.Error(c, http.StatusBadRequest, "TLD does not match URL")
+			return
+		}
+	}
+
+	//If urls contains https assign SSLCertificate to true
+	if in.URL != nil && strings.HasPrefix(strings.ToLower(*in.URL), "https") {
+		ssl := true
+		in.SSLCertificate = &ssl
+	} else {
+		ssl := false
+		in.SSLCertificate = &ssl
+	}
+
+	//Verification of the percentage and risk level
+
+	/* END VERIFICATIONS */
+
+	existing, created, err := ctrl.Service.CreateWebsite(c.Request.Context(), in)
 	if err != nil {
 		utils.Error(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	/* Convert into return DTO */
-	createWebsiteReturnDTO, err := helpers.ConvertWebsiteModelDTOReturn(*created)
-	if err != nil {
-		utils.Error(c, http.StatusBadRequest, err.Error())
+	/* If value already exists, return a 200 */
+	if *existing {
+		utils.Success(c, "Website already exists", created)
 		return
 	}
-	utils.Success(c, "Website created", createWebsiteReturnDTO)
+	//if not, return a 201 with the dto
+	utils.SuccessCreated(c, "Webiste created", created)
+
 }
 
 // GET /websites/:identification
@@ -73,13 +123,12 @@ func (ctrl *WebsiteController) GetWebsite(c *gin.Context) {
 	} else {
 		website, err = ctrl.Service.GetWebsiteByDomain(c.Request.Context(), identification)
 	}
-
-	if err != nil {
-		utils.Error(c, http.StatusInternalServerError, err.Error())
-		return
-	}
 	if website == nil {
 		utils.Error(c, http.StatusNotFound, "website not found")
+		return
+	}
+	if err != nil {
+		utils.Error(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
@@ -99,8 +148,8 @@ func (ctrl *WebsiteController) ListWebsites(c *gin.Context) {
 	domain := strings.TrimSpace(c.Query("domain"))
 	status := strings.TrimSpace(c.Query("status"))
 	risk := strings.TrimSpace(c.Query("risk_level"))
-	limit := utils.ParseIntDefault(c.Query("limit"), 50)
-	offset := utils.ParseIntDefault(c.Query("offset"), 0)
+	page := utils.ParseIntDefault(c.Query("page"), 0)
+	pageSize := utils.ParseIntDefault(c.Query("page_size"), 50)
 	/* Convert the string into bool */
 	if s := strings.TrimSpace(c.Query("is_not_trusted")); s != "" {
 		parsed, err := strconv.ParseBool(s) // accepts: 1/0, t/f, true/false (any case)
@@ -110,14 +159,15 @@ func (ctrl *WebsiteController) ListWebsites(c *gin.Context) {
 		}
 	}
 
-	res, err := ctrl.Service.ListWebsites(c.Request.Context(), services.ListWebsitesFilter{
+	res, err := ctrl.Service.ListWebsites(c.Request.Context(), models.Pagination{
+		Page:     utils.Clamp(page, 0, 200),
+		PageSize: utils.Max(0, pageSize),
+	}, models.ListWebsitesFilter{
 		IsNotTrustedEnabled: &IsNotTrustedEnabled,
 		IsNotTrusted:        &isNotTrusted,
 		Domain:              domain,
 		Status:              status,
 		RiskLevel:           risk,
-		Limit:               utils.Clamp(limit, 1, 200),
-		Offset:              utils.Max(0, offset),
 	})
 	if err != nil {
 		utils.Error(c, http.StatusInternalServerError, "failed to list websites")
@@ -125,17 +175,18 @@ func (ctrl *WebsiteController) ListWebsites(c *gin.Context) {
 	}
 
 	// shape: { data, count, limit, offset }
-	utils.Success(c, "Websites listed", gin.H{
-		"data":   res.Items,
-		"count":  res.Count,
-		"limit":  res.Limit,
-		"offset": res.Offset,
+	utils.SuccessList(c, "Websites listed", gin.H{
+		"data": res.Items,
+	}, gin.H{
+		"total":     res.Total,
+		"page":      res.Page,
+		"page_size": res.PageSize,
 	})
 }
 
 // GET /websites/extension
 // Supports ?domain=&status=&risk_level=&limit=&offset=
-func (ctrl *WebsiteController) GetWebsitesExtension(c *gin.Context) {
+func (ctrl *WebsiteController) GetExtensions(c *gin.Context) {
 	var isNotTrusted bool
 	var IsNotTrustedEnabled bool = false
 	if s := strings.TrimSpace(c.Query("is_not_trusted")); s != "" {
@@ -146,7 +197,7 @@ func (ctrl *WebsiteController) GetWebsitesExtension(c *gin.Context) {
 		}
 	}
 
-	res, err := ctrl.Service.GetWebsitesExtension(c.Request.Context(), services.ListWebsitesExtensionFilter{
+	res, err := ctrl.Service.GetWebsitesExtension(c.Request.Context(), models.ListWebsitesExtensionFilter{
 		IsNotTrustedEnabled: &IsNotTrustedEnabled,
 		IsNotTrusted:        &isNotTrusted,
 	})
@@ -179,6 +230,7 @@ func (ctrl *WebsiteController) UpdateWebsite(c *gin.Context) {
 		return
 	}
 
+	fmt.Println("in ", in)
 	updated, err := ctrl.Service.UpdateWebsite(c.Request.Context(), id, in)
 	if err != nil {
 		utils.Error(c, http.StatusBadRequest, err.Error())
@@ -191,10 +243,23 @@ func (ctrl *WebsiteController) UpdateWebsite(c *gin.Context) {
 		utils.Error(c, http.StatusBadRequest, err.Error())
 		return
 	}
+	fmt.Println("website dto return ", createWebsiteReturnDTO)
 	utils.Success(c, "Website updated", createWebsiteReturnDTO)
 }
 
-// DELETE /websites/:id
+/*
+Delete a website by id
+
+Needs:
+  - id of the webiste
+
+Returns:
+  - 204: no content, but it was successful
+  - 400: Bad request
+  - 401: unauthorized (made through middleware)
+  - 403: no access (made through middleware)
+  - 500: internal server error
+*/
 func (ctrl *WebsiteController) DeleteWebsite(c *gin.Context) {
 	id := strings.TrimSpace(c.Param("id"))
 	if id == "" {
@@ -207,4 +272,30 @@ func (ctrl *WebsiteController) DeleteWebsite(c *gin.Context) {
 	}
 	// 204 with no payload, or 200 with message — choose one. Keeping consistent with utils:
 	utils.SuccessWithCode(c, http.StatusNoContent, "Website deleted", nil)
+}
+
+/*
+Function to verify a website as an ADMIN
+
+Needs:
+
+  - id of the website
+
+Returns:
+
+  - 200: website verified
+  - 400: bad request
+  - 401: unauthorized (made through middleware)
+  - 403: no access (made through middleware)
+  - 500: internal server error
+*/
+func (ctrl *WebsiteController) VerifyWebsiteById(c *gin.Context) {
+	id := strings.TrimSpace(c.Param("id"))
+	if id == "" {
+		utils.Error(c, http.StatusBadRequest, "missing id")
+		return
+	}
+
+	//verify the website
+
 }

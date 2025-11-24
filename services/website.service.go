@@ -4,31 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"steamshark-api/db"
 	"steamshark-api/dtos"
 	helpers "steamshark-api/helpers/convertDTO"
 	"steamshark-api/models"
-	"strings"
+	"steamshark-api/utils"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
-
-// Filter the /websites list
-type ListWebsitesFilter struct {
-	IsNotTrustedEnabled *bool
-	IsNotTrusted        *bool
-	Domain              string
-	Status              string
-	RiskLevel           string
-	Limit               int
-	Offset              int
-}
-
-type ListWebsitesExtensionFilter struct {
-	IsNotTrustedEnabled *bool
-	IsNotTrusted        *bool
-}
 
 type WebsiteService struct {
 	DB *gorm.DB
@@ -48,45 +31,61 @@ Create an website through an DTO provided
 
 @returns:
 
-	website model
-	error
+	existing: to now if already exists or no
+	dto website model: actual object in dto
+	error: if has an error
 */
-func (s *WebsiteService) CreateWebsite(ctx context.Context, in dtos.WebsiteCreationInput) (*models.Website, error) { /* dtos.WebsiteDTO */
-	// Basic validation
-	if strings.TrimSpace(in.Domain) == "" {
-		return nil, errors.New("domain is required")
-	}
-
+func (s *WebsiteService) CreateWebsite(ctx context.Context, in dtos.WebsiteCreationInput) (*bool, *dtos.WebsiteReturnDTO, error) { /* dtos.WebsiteDTO */
 	/* CREATE THE MODLE THROUGH THE DTO */
 	modelWebsite, err := helpers.ConvertWebsiteDTOModelCreation(in)
 	if err != nil {
-		return nil, errors.New("an error occurred while creating the website")
+		return nil, nil, errors.New("an error occurred while creating the website")
 	}
-
-	db := s.DB.WithContext(ctx)
 
 	// Idempotent create: if domain already exists, return the existing record
 	var existing models.Website
-	if err := db.Where("domain = ?", modelWebsite.Domain).First(&existing).Error; err == nil {
-		return &existing, nil
+	if err := s.DB.WithContext(ctx).Where("domain = ?", modelWebsite.Domain).First(&existing).Error; err == nil {
+		/* Create the DTO inside the service and return DTO to controller */
+		existingWebsiteReturnDTO, err := helpers.ConvertWebsiteModelDTOReturn(*modelWebsite)
+		if err != nil {
+			return nil, nil, errors.New("an error occurred while creating the website")
+		}
+		return utils.ReturnPointerBool(true), existingWebsiteReturnDTO, nil
 	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, err
+		return nil, nil, err
 	}
 
-	if modelWebsite.RiskLevel == "low" {
-		b := false
-		modelWebsite.IsNotTrusted = &b
-	} else {
-		b := true
-		modelWebsite.IsNotTrusted = &b
+	//verify and determine the is_not_trusted, otherwise is already
+	if modelWebsite.RiskScore <= 20 {
+		modelWebsite.IsNotTrusted = utils.ReturnPointerBool(false)
 	}
 
+	//set the risk level (text)
+	if modelWebsite.RiskScore == 0 && modelWebsite.IsOfficial { //
+		modelWebsite.RiskLevel = "none"
+	} else if modelWebsite.RiskScore > 0 && modelWebsite.RiskScore <= 10 { /*  */
+		modelWebsite.RiskLevel = "low"
+	} else if modelWebsite.RiskScore > 10 && modelWebsite.RiskScore <= 50 { /*  */
+		modelWebsite.RiskLevel = "medium"
+	} else if modelWebsite.RiskScore > 50 && modelWebsite.RiskScore < 90 { /*  */
+		modelWebsite.RiskLevel = "high"
+	} else if modelWebsite.RiskScore >= 90 && modelWebsite.RiskScore <= 100 { /*  */
+		modelWebsite.RiskLevel = "critical"
+	} else { /* just to be sure */
+		modelWebsite.RiskLevel = "unknown"
+	}
 	// Create
-	if err := db.Create(&modelWebsite).Error; err != nil {
-		return nil, err
+	if err := s.DB.Create(&modelWebsite).Error; err != nil {
+		return nil, nil, err
 	}
 
-	return modelWebsite, nil
+	/* Convert into return DTO */
+	createWebsiteReturnDTO, err := helpers.ConvertWebsiteModelDTOReturn(*modelWebsite)
+	if err != nil {
+		return nil, nil, errors.New("an error occurred while creating the website")
+	}
+
+	return utils.ReturnPointerBool(false), createWebsiteReturnDTO, nil
 }
 
 /*
@@ -101,25 +100,25 @@ List all websites with pagination and custom params
 
 	PaginatedListResult: List with pagination of the Websites with params
 */
-func (s *WebsiteService) ListWebsites(ctx context.Context, f ListWebsitesFilter) (*db.PaginatedListResult[models.Website], error) {
+func (s *WebsiteService) ListWebsites(ctx context.Context, pagination models.Pagination, filters models.ListWebsitesFilter) (*models.PaginatedListResult[models.Website], error) {
 	q := s.DB.WithContext(ctx).Model(&models.Website{})
 
-	fmt.Println("ListWebsitesFilter ", f)
+	fmt.Println("ListWebsitesFilter ", filters)
 
 	/* VERIFY IF THERE IS IN PARAMS */
-	if *f.IsNotTrustedEnabled {
-		if f.IsNotTrusted != nil {
-			q = q.Where("is_not_trusted = ?", f.IsNotTrusted)
+	if *filters.IsNotTrustedEnabled {
+		if filters.IsNotTrusted != nil {
+			q = q.Where("is_not_trusted = ?", filters.IsNotTrusted)
 		}
 	}
-	if f.Domain != "" {
-		q = q.Where("domain LIKE ?", "%"+f.Domain+"%")
+	if filters.Domain != "" {
+		q = q.Where("domain LIKE ?", "%"+filters.Domain+"%")
 	}
-	if f.Status != "" {
-		q = q.Where("status = ?", f.Status)
+	if filters.Status != "" {
+		q = q.Where("status = ?", filters.Status)
 	}
-	if f.RiskLevel != "" {
-		q = q.Where("risk_level = ?", f.RiskLevel)
+	if filters.RiskLevel != "" {
+		q = q.Where("risk_level = ?", filters.RiskLevel)
 	}
 
 	var total int64
@@ -128,15 +127,17 @@ func (s *WebsiteService) ListWebsites(ctx context.Context, f ListWebsitesFilter)
 	}
 
 	var items []models.Website
-	if err := q.Preload("Occurrences").
-		Order("updated_at DESC").
-		Limit(f.Limit).
-		Offset(f.Offset).
-		Find(&items).Error; err != nil {
+	if err := q. /* Preload("Website"). */
+			Order("updated_at DESC").
+			Limit(pagination.PageSize).
+			Offset((pagination.Page - 1) * pagination.PageSize).
+			Find(&items).Error; err != nil {
 		return nil, err
 	}
 
-	return &db.PaginatedListResult[models.Website]{Items: items, Count: total, Limit: f.Limit, Offset: f.Offset}, nil
+	fmt.Println(items)
+
+	return &models.PaginatedListResult[models.Website]{Items: items, Total: total, Page: pagination.Page, PageSize: pagination.PageSize}, nil
 }
 
 /*
@@ -175,7 +176,7 @@ func (s *WebsiteService) GetWebsiteByID(ctx context.Context, identification stri
 	return &w, nil
 }
 
-func (s *WebsiteService) GetWebsitesExtension(ctx context.Context, f ListWebsitesExtensionFilter) (*[]models.Website, error) {
+func (s *WebsiteService) GetWebsitesExtension(ctx context.Context, f models.ListWebsitesExtensionFilter) (*[]models.Website, error) {
 	q := s.DB.WithContext(ctx).Model(&models.Website{})
 
 	fmt.Println("ListWebsitesFilter ", f)
@@ -278,4 +279,11 @@ func (s *WebsiteService) DeleteWebsite(ctx context.Context, id string) error {
 		return gorm.ErrRecordNotFound
 	}
 	return nil
+}
+
+/*
+Verify the an website by id
+*/
+func (s *WebsiteService) VerifyWebsiteById(ctx context.Context, id string) {
+
 }

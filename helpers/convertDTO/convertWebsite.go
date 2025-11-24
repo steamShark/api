@@ -9,9 +9,6 @@ import (
 Convert an Creation Website DTO into model
 */
 func ConvertWebsiteDTOModelCreation(in dtos.WebsiteCreationInput) (*models.Website, error) {
-	if in.RiskLevel == "" {
-		in.RiskLevel = "unknown"
-	}
 	if in.Status == "" {
 		in.Status = "active"
 	}
@@ -23,7 +20,7 @@ func ConvertWebsiteDTOModelCreation(in dtos.WebsiteCreationInput) (*models.Websi
 		Type:        *in.Type,
 		DisplayName: in.DisplayName,
 		Description: in.Description,
-		RiskLevel:   in.RiskLevel,
+		RiskScore:   *in.RiskScore,
 		Status:      in.Status,
 		Notes:       in.Notes,
 	}
@@ -35,9 +32,6 @@ func ConvertWebsiteDTOModelCreation(in dtos.WebsiteCreationInput) (*models.Websi
 	}
 	if in.SteamLoginPresent != nil {
 		websiteModel.SteamLoginPresent = *in.SteamLoginPresent
-	}
-	if in.RiskScore != nil {
-		websiteModel.RiskScore = *in.RiskScore
 	}
 
 	return &websiteModel, nil

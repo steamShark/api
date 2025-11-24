@@ -2,37 +2,28 @@ package main
 
 import (
 	"log"
-	"os"
 	controllers "steamshark-api/controllers/v1/website"
 	"steamshark-api/db"
+	"steamshark-api/helpers"
 	"steamshark-api/middlewares"
 	"steamshark-api/routes"
 	"steamshark-api/services"
 
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
 )
 
-func init() {
-	var err error
-
-	/* metrics.InitMetrics() */
-
-	err = godotenv.Load()
-	if err != nil {
-		log.Fatal("Failed to load .env file.")
-	}
-
-}
-
 func main() {
+	envConfig, err := helpers.LoadEnvConfig()
+	if err != nil {
+		log.Fatal("Error loading configuration: ", err)
+	}
 	r := gin.New()
 	r.Use(gin.Logger())
 	r.Use(gin.Recovery())
-	r.Use(middlewares.CORSPolicy()) //Use cors
+	r.Use(middlewares.SecurityHeaders()) //Use better security headers
+	r.Use(middlewares.CORSPolicy())      //Use cors
 
-	env := os.Getenv("APP_ENV")
-	switch env {
+	switch envConfig.Env {
 	case "development":
 		gin.SetMode(gin.DebugMode)
 	case "production":
@@ -41,7 +32,7 @@ func main() {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
-	host := os.Getenv("HOST")
+	host := envConfig.Host
 	if host == "" {
 		host = "localhost"
 	}
@@ -65,7 +56,7 @@ func main() {
 	/* IMPLEMENT ROUTER */
 	router := routes.SetupRouter(websiteController, occurrenceWebsiteController)
 
-	port := os.Getenv("PORT")
+	port := envConfig.Port
 	if port == "" {
 		port = ":8800"
 	}

@@ -10,9 +10,8 @@ type WebsiteCreationInput struct {
 	SSLCertificate    *bool    `json:"ssl_certificate,omitempty" binding:"required"`
 	IsOfficial        *bool    `json:"is_official,omitempty"`
 	SteamLoginPresent *bool    `json:"steam_login_present,omitempty"`
-	RiskScore         *float64 `json:"risk_score,omitempty"`
-	RiskLevel         string   `json:"risk_level,omitempty" binding:"omitempty,oneof=unknown low medium high critical"`
 	Status            string   `json:"status,omitempty" binding:"omitempty,oneof=active blocked archived"`
+	RiskScore         *float64 `json:"risk_score,omitempty"` /* its going to evaluate if is going to be trusted or not, in the first iteration */
 	Notes             *string  `json:"notes,omitempty"`
 }
 
@@ -38,9 +37,9 @@ type WebsiteReturnDTO struct {
 	IsNotTrusted      *bool    `json:"is_not_trusted,omitempty"`
 	IsOfficial        *bool    `json:"is_official,omitempty"`
 	SteamLoginPresent *bool    `json:"steam_login_present,omitempty"`
-	Verified          *string  `json:"verified" binding:"required,oneof=verified not_verified"`
+	Verified          *bool    `json:"verified" binding:"required"`
 	RiskScore         *float64 `json:"risk_score,omitempty"`
-	RiskLevel         string   `json:"risk_level,omitempty" binding:"omitempty,oneof=unknown low medium high critical"`
+	RiskLevel         string   `json:"risk_level,omitempty" binding:"omitempty,oneof=unknown none low medium high critical"`
 	Status            string   `json:"status,omitempty" binding:"omitempty,oneof=active blocked archived"`
 }
 

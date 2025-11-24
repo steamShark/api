@@ -11,8 +11,8 @@ func CORSPolicy() gin.HandlerFunc {
 
 		// In dev you can loosen this, or load from config/env
 		allowedOrigins := map[string]bool{
-			"http://localhost:8080": true,
-			// add more allowed origins here...
+			"http://localhost:8080":      true,
+			"https://www.steamshark.app": true,
 		}
 
 		if allowedOrigins[origin] {

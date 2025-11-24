@@ -1,0 +1,9 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: steamshark-api
+    ports:
+    - "8080:8080" # Coolify/Traefik will route your API domain to this port
+    restart: unless-stopped

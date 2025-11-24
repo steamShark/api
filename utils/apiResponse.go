@@ -13,9 +13,24 @@ type APIResponse struct {
 	Timestamp string      `json:"timestamp"`
 	Message   string      `json:"message"`
 	Data      interface{} `json:"data,omitempty"`
+	Metadata  interface{} `json:"metadata"`
 }
 
-// Success sends a success response
+/*
+API standard response to created
+*/
+func SuccessCreated(c *gin.Context, message string, data interface{}) {
+	c.JSON(http.StatusCreated, APIResponse{
+		Status:    "success",
+		Timestamp: time.Now().UTC().Format(time.RFC3339),
+		Message:   message,
+		Data:      data,
+	})
+}
+
+/*
+API standard response to success operation
+*/
 func Success(c *gin.Context, message string, data interface{}) {
 	c.JSON(http.StatusOK, APIResponse{
 		Status:    "success",
@@ -25,6 +40,22 @@ func Success(c *gin.Context, message string, data interface{}) {
 	})
 }
 
+/*
+API standard response to success operation
+*/
+func SuccessList(c *gin.Context, message string, data interface{}, metadata interface{}) {
+	c.JSON(http.StatusOK, APIResponse{
+		Status:    "success",
+		Timestamp: time.Now().UTC().Format(time.RFC3339),
+		Message:   message,
+		Data:      data,
+		Metadata:  metadata,
+	})
+}
+
+/*
+API standard response to success operation, and specify the http code
+*/
 func SuccessWithCode(c *gin.Context, code int, message string, data interface{}) {
 	c.JSON(code, APIResponse{
 		Status:    "success",
@@ -34,7 +65,9 @@ func SuccessWithCode(c *gin.Context, code int, message string, data interface{})
 	})
 }
 
-// Error sends an error response with custom code
+/*
+API standard response to error/failed operation, and specify the http code
+*/
 func Error(c *gin.Context, code int, message string) {
 	c.JSON(code, APIResponse{
 		Status:    "error",
