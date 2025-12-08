@@ -284,6 +284,29 @@ func (s *WebsiteService) DeleteWebsite(ctx context.Context, id string) error {
 /*
 Verify the an website by id
 */
-func (s *WebsiteService) VerifyWebsiteById(ctx context.Context, id string) {
+func (s *WebsiteService) VerifyWebsiteById(ctx context.Context, id string) (*models.Website, error) {
+	if id == "" {
+		return nil, errors.New("id is required")
+	}
 
+	var website models.Website
+
+	//verifiedWebsite := s.DB.WithContext(ctx).Model(&models.Website{}).Where("id = ?", id).Update("verified", true)
+
+	// Load the website
+	if err := s.DB.WithContext(ctx).
+		First(&website, "id = ?", id).Error; err != nil {
+		return nil, err // handle not found / db error
+	}
+
+	// Update the field in Go
+	website.Verified = true
+
+	// Persist changes
+	if err := s.DB.WithContext(ctx).Save(&website).Error; err != nil {
+		return nil, err
+	}
+
+	// website now has the updated data
+	return &website, nil
 }

@@ -17,7 +17,6 @@ import (
 	"github.com/google/uuid"
 )
 
-// Wire this to your DI/container as you do for other controllers.
 type WebsiteController struct {
 	Service *services.WebsiteService
 }
@@ -270,7 +269,7 @@ func (ctrl *WebsiteController) DeleteWebsite(c *gin.Context) {
 		utils.Error(c, http.StatusBadRequest, err.Error())
 		return
 	}
-	// 204 with no payload, or 200 with message — choose one. Keeping consistent with utils:
+	// 204 with no payload
 	utils.SuccessWithCode(c, http.StatusNoContent, "Website deleted", nil)
 }
 
@@ -297,5 +296,12 @@ func (ctrl *WebsiteController) VerifyWebsiteById(c *gin.Context) {
 	}
 
 	//verify the website
+	website, err := ctrl.Service.VerifyWebsiteById(c.Request.Context(), id)
+	if err != nil {
+		utils.Error(c, http.StatusBadRequest, err.Error())
+		return
+	}
 
+	// 200 with message
+	utils.Success(c, "Website verified", website)
 }

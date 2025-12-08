@@ -24,7 +24,7 @@ func SetupRouter(websiteController *websiteControllers.WebsiteController, occurr
 		//POSTS
 		v1.POST("/websites", websiteController.CreateWebsite)
 		//VERIFY RECORDS
-		v1.POST("/websites/:id/verify", websiteController.VerifyWebsiteById)
+		v1.POST("/websites/:id/verify", websiteController.VerifyWebsiteById) /* ADMIN ONLY */
 
 		//PUT
 		v1.PUT("/websites/:id", websiteController.UpdateWebsite)

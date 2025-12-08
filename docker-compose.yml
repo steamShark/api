@@ -4,6 +4,8 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: steamshark-api
+    environment:
+      - APP_ENV=${APP_ENV}
     ports:
-    - "8080:8080" # Coolify/Traefik will route your API domain to this port
+    - "8800:8800" # Coolify/Traefik will route your API domain to this port
     restart: unless-stopped
