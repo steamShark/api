@@ -35,9 +35,5 @@ func LoadConfig() (*Config, error) {
 		DBPath: utils.GetEnv("DB_PATH", "databases/steamshark.db"),
 	}
 
-	if config.Host == "" || config.Port == "" || config.DBPath == "" {
-		return nil, errors.New("some env variables were not defined")
-	}
-
 	return &config, nil
 }
