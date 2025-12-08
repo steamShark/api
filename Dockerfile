@@ -31,7 +31,6 @@ RUN apk add --no-cache wget
 RUN mkdir -p /app/databases && chown -R app:app /app
 # Copy the binary
 COPY --from=build /out/app /app/app
-COPY .env /app/.env
 # Runtime env
 ENV PORT=8800
 # Listen on PORT
