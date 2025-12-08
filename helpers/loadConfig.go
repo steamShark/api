@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"os"
 	"steamshark-api/utils"
@@ -19,7 +20,7 @@ type Config struct {
 func LoadConfig() (*Config, error) {
 	// Try to load .env only if it exists (so Coolify won't complain)
 	if _, err := os.Stat(".env"); err == nil {
-		if err := godotenv.Load(".ENV"); err != nil {
+		if err := godotenv.Load(".env"); err != nil {
 			return nil, errors.New("error loading .env")
 		}
 	} else {
@@ -34,6 +35,8 @@ func LoadConfig() (*Config, error) {
 		// default to databases/steamshark.db relative to the app WORKDIR
 		DBPath: utils.GetEnv("DB_PATH", "databases/steamshark.db"),
 	}
+
+	fmt.Println("config ", config)
 
 	return &config, nil
 }

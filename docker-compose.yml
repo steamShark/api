@@ -6,7 +6,7 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     environment:
-      - ENV=${ENV}
+      - APP_ENV=${APP_ENV}
       - HOST=${HOST}
       - PORT=${PORT}
       - DB_PATH=${DB_PATH}

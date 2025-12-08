@@ -31,8 +31,6 @@ RUN apk add --no-cache wget
 RUN mkdir -p /app/databases && chown -R app:app /app
 # Copy the binary
 COPY --from=build /out/app /app/app
-# Runtime env
-ENV PORT=8800
 # Listen on PORT
 EXPOSE 8800
 # Basic healthcheck hitting /health (customize to your route)
