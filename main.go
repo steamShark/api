@@ -13,7 +13,7 @@ import (
 )
 
 func main() {
-	envConfig, err := helpers.LoadEnvConfig()
+	config, err := helpers.LoadConfig()
 	if err != nil {
 		log.Fatal("Error loading configuration: ", err)
 	}
@@ -23,7 +23,7 @@ func main() {
 	r.Use(middlewares.SecurityHeaders()) //Use better security headers
 	r.Use(middlewares.CORSPolicy())      //Use cors
 
-	switch envConfig.Env {
+	switch config.Env {
 	case "development":
 		gin.SetMode(gin.DebugMode)
 	case "production":
@@ -32,7 +32,7 @@ func main() {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
-	host := envConfig.Host
+	host := config.Host
 	if host == "" {
 		host = "localhost"
 	}
@@ -56,7 +56,7 @@ func main() {
 	/* IMPLEMENT ROUTER */
 	router := routes.SetupRouter(websiteController, occurrenceWebsiteController)
 
-	port := envConfig.Port
+	port := config.Port
 	if port == "" {
 		port = ":8800"
 	}

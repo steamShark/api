@@ -17,16 +17,21 @@ GOARCH=amd64 \
 GOFLAGS=-buildvcs=false
 # Adjust the build path to your main package
 # If your main is at ./cmd/api/main.go, build like this:
-RUN go build -ldflags "-s -w" -o /out/app ./cmd/api
+RUN go build -ldflags "-s -w" -o /out/app .
 
 # --- Runtime stage ---
 FROM alpine:3.20
-# Create non-root user
+# Set a working directory for the app
+WORKDIR /app
+# Create non-root user (this must be BEFORE USER app)
 RUN addgroup -S app && adduser -S app -G app
 # Add a tiny tool for healthcheck
-RUN apk add --no-cache wget ca-certificates && update-ca-certificates
+RUN apk add --no-cache wget
+# Create sqlite directory and give it to app user
+RUN mkdir -p /app/databases && chown -R app:app /app
 # Copy the binary
-COPY --from=build /out/app /bin/app
+COPY --from=build /out/app /app/app
+COPY .env /app/.env
 # Runtime env
 ENV PORT=8800
 # Listen on PORT
@@ -36,4 +41,4 @@ HEALTHCHECK --interval=30s --timeout=3s --retries=3 CMD wget -qO- http://localho
 
 USER app
 
-ENTRYPOINT ["/bin/app"]
+ENTRYPOINT ["/app/app"]
