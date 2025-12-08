@@ -10,8 +10,6 @@ services:
       - HOST=${HOST}
       - PORT=${PORT}
       - DB_PATH=${DB_PATH}
-    ports:
-    - "8800:8800" # Coolify/Traefik will route your API domain to this port
     volumes:
       # Persist the SQLite DB outside the container
       - steamshark_db:/app/databases
