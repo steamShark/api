@@ -26,12 +26,14 @@ func NewWebsiteController(s *services.WebsiteService) *WebsiteController {
 }
 
 /*
-Create website, POST method
+# Create website, POST method
 
-Needs:
+# POST /websites
+
+# Needs:
   - in: Website dto for creations
 
-Returns:
+# Returns:
   - 200: already exists
   - 201: created
   - 400: bad request
@@ -103,6 +105,21 @@ func (ctrl *WebsiteController) CreateWebsite(c *gin.Context) {
 }
 
 // GET /websites/:identification
+/*
+Gets a specific website, by identification, id or the domain of the website (eg.: steamcommunity.com)
+
+# GET /websites/:identification
+
+# Needs:
+  - identification of the webiste (id, or domain (eg.: steamcommunity.com))
+
+# Returns:
+  - 200: success
+  - 400: Bad request
+  - 401: unauthorized (made through middleware)
+  - 403: no access (made through middleware)
+  - 500: internal server error
+*/
 func (ctrl *WebsiteController) GetWebsite(c *gin.Context) {
 	identification := strings.TrimSpace(c.Param("identification"))
 	if identification == "" {
@@ -139,8 +156,28 @@ func (ctrl *WebsiteController) GetWebsite(c *gin.Context) {
 	utils.Success(c, "Website found", website)
 }
 
-// GET /websites
-// Supports ?domain=&status=&risk_level=&limit=&offset=
+/*
+Gets all websites
+
+# GET /websites
+
+# Needs:
+  - id of the webiste
+
+# Query params:
+  - domain
+  - status
+  - risk_level
+  - page
+  - page_size
+
+# Returns:
+  - 200: success
+  - 400: Bad request
+  - 401: unauthorized (made through middleware)
+  - 403: no access (made through middleware)
+  - 500: internal server error
+*/
 func (ctrl *WebsiteController) ListWebsites(c *gin.Context) {
 	var isNotTrusted bool
 	var IsNotTrustedEnabled bool = false
@@ -183,8 +220,28 @@ func (ctrl *WebsiteController) ListWebsites(c *gin.Context) {
 	})
 }
 
-// GET /websites/extension
-// Supports ?domain=&status=&risk_level=&limit=&offset=
+/*
+Gets all extensions
+
+# GET /websites/extension
+
+# Needs:
+  - id of the webiste
+
+# Query params:
+  - domain
+  - status
+  - risk_level
+  - page
+  - page_size
+
+# Returns:
+  - 200: success
+  - 400: Bad request
+  - 401: unauthorized (made through middleware)
+  - 403: no access (made through middleware)
+  - 500: internal server error
+*/
 func (ctrl *WebsiteController) GetExtensions(c *gin.Context) {
 	var isNotTrusted bool
 	var IsNotTrustedEnabled bool = false
@@ -215,7 +272,21 @@ func (ctrl *WebsiteController) GetExtensions(c *gin.Context) {
 	utils.Success(c, "Websites listed", websites)
 }
 
-// PUT /websites/:id
+/*
+Update a website by id
+
+# PUT /websites/:id
+
+# Needs:
+  - id of the webiste
+
+# Returns:
+  - 200: updated
+  - 400: Bad request
+  - 401: unauthorized (made through middleware)
+  - 403: no access (made through middleware)
+  - 500: internal server error
+*/
 func (ctrl *WebsiteController) UpdateWebsite(c *gin.Context) {
 	id := strings.TrimSpace(c.Param("id"))
 	if id == "" {
@@ -249,10 +320,12 @@ func (ctrl *WebsiteController) UpdateWebsite(c *gin.Context) {
 /*
 Delete a website by id
 
-Needs:
+# DELETE /websites/:id
+
+# Needs:
   - id of the webiste
 
-Returns:
+# Returns:
   - 204: no content, but it was successful
   - 400: Bad request
   - 401: unauthorized (made through middleware)
@@ -276,12 +349,12 @@ func (ctrl *WebsiteController) DeleteWebsite(c *gin.Context) {
 /*
 Function to verify a website as an ADMIN
 
-Needs:
+# POST /webistes/:id
 
+# Needs:
   - id of the website
 
-Returns:
-
+# Returns:
   - 200: website verified
   - 400: bad request
   - 401: unauthorized (made through middleware)
