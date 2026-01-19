@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 	controllers "steamshark-api/controllers/v1/website"
 	"steamshark-api/db"
 	"steamshark-api/helpers"
@@ -10,7 +11,12 @@ import (
 	"steamshark-api/services"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
+
+func init() {
+	zap.ReplaceGlobals(zap.Must(zap.NewProduction()))
+}
 
 func main() {
 	config, err := helpers.LoadConfig()
@@ -23,13 +29,18 @@ func main() {
 	r.Use(middlewares.SecurityHeaders()) //Use better security headers
 	r.Use(middlewares.CORSPolicy())      //Use cors
 
+	//Add logger
+	logger := zap.Must(zap.NewProduction())
+
 	switch config.Env {
 	case "development":
 		gin.SetMode(gin.DebugMode)
+		logger = zap.Must(zap.NewDevelopment())
 	case "production":
 		gin.SetMode(gin.ReleaseMode)
 	default:
 		gin.SetMode(gin.ReleaseMode)
+		logger = zap.Must(zap.NewDevelopment())
 	}
 
 	host := config.Host
@@ -38,7 +49,13 @@ func main() {
 	}
 
 	/* Start DB */
-	db := db.InitUsersDB()
+	db, err := db.InitDB(config.DBPath)
+	if err != nil { //If cannot conenct to db, just exit the program with error
+		logger.Fatal("Database init error", zap.Error(err))
+		os.Exit(1)
+	} else {
+		logger.Info("Database connected")
+	}
 
 	/* START CONTROLLERS AND SERVICES */
 	websiteService := services.NewWebsiteService(db)
@@ -63,5 +80,9 @@ func main() {
 
 	if err := router.Run(port); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
+		logger.Fatal("Failed to start the server!", zap.Error(err))
+		os.Exit(1)
+	} else {
+		logger.Info("API started!")
 	}
 }

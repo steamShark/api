@@ -2,7 +2,6 @@ package helpers
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"os"
 	"steamshark-api/utils"
@@ -35,8 +34,6 @@ func LoadConfig() (*Config, error) {
 		// default to databases/steamshark.db relative to the app WORKDIR
 		DBPath: utils.GetEnv("DB_PATH", "databases/steamshark.db"),
 	}
-
-	fmt.Println("config ", config)
 
 	return &config, nil
 }

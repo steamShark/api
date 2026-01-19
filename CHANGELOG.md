@@ -5,4 +5,5 @@
 - General first set up of the apis
 - CRUD for websites
 - Added documentation via ... (link to access documentation online)
+- Added documentation in the functions
 - Added a set of tests to the api
