@@ -32,7 +32,7 @@ func LoadConfig() (*Config, error) {
 		Host: utils.GetEnv("HOST", "0.0.0.0"),
 		Port: utils.GetEnv("PORT", "8800"),
 		// default to databases/steamshark.db relative to the app WORKDIR
-		DBPath: utils.GetEnv("DB_PATH", "databases/steamshark.db"),
+		DBPath: utils.GetEnv("DB_PATH", "/app/databases/steamshark.db"),
 	}
 
 	return &config, nil

@@ -33,19 +33,12 @@ func main() {
 	logger := zap.Must(zap.NewProduction())
 
 	switch config.Env {
-	case "development":
+	case "production", "prod":
+		gin.SetMode(gin.ReleaseMode)
+		logger = zap.Must(zap.NewProduction())
+	default:
 		gin.SetMode(gin.DebugMode)
 		logger = zap.Must(zap.NewDevelopment())
-	case "production":
-		gin.SetMode(gin.ReleaseMode)
-	default:
-		gin.SetMode(gin.ReleaseMode)
-		logger = zap.Must(zap.NewDevelopment())
-	}
-
-	host := config.Host
-	if host == "" {
-		host = "localhost"
 	}
 
 	/* Start DB */
@@ -73,12 +66,7 @@ func main() {
 	/* IMPLEMENT ROUTER */
 	router := routes.SetupRouter(websiteController, occurrenceWebsiteController)
 
-	port := config.Port
-	if port == "" {
-		port = ":8800"
-	}
-
-	if err := router.Run(port); err != nil {
+	if err := router.Run(config.Port); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 		logger.Fatal("Failed to start the server!", zap.Error(err))
 		os.Exit(1)
