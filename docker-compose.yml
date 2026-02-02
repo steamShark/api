@@ -6,10 +6,10 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     environment:
-      - APP_ENV=${APP_ENV}
-      - HOST=${HOST}
-      - PORT=${PORT}
-      - DB_PATH=${DB_PATH}
+      - APP_ENV=${APP_ENV:-production}
+      - HOST=${HOST:-0.0.0.0}
+      - PORT=${PORT:-8800}
+      - DB_PATH=${DB_PATH:-/app/databases/steamshark.db}
     volumes:
       # Persist the SQLite DB outside the container
       - steamshark_db:/app/databases
