@@ -13,8 +13,8 @@ services:
     volumes:
       # Persist the SQLite DB outside the container
       - steamshark_db:/app/databases
-    ports:
-      - 8800:8800
+    expose:
+      - 8800
 
 volumes:
   steamshark_db:
