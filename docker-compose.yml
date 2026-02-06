@@ -6,7 +6,7 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     environment:
-      - APP_ENV=${APP_ENV:-production}
+      - APP_ENV=${APP_ENV:-dev}
       - HOST=${HOST:-0.0.0.0}
       - PORT=${PORT:-:8800}
       - DB_PATH=${DB_PATH:-/app/databases/steamshark.db}
@@ -16,7 +16,7 @@ services:
     ports:
       - 8800:8800
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8800/healthz"]
+      test: ["CMD", "wget", "-q", "http://localhost:8800/api/v1/healthz"]
       interval: 10s
       timeout: 3s
       retries: 5
