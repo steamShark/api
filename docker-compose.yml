@@ -8,13 +8,13 @@ services:
     environment:
       - APP_ENV=${APP_ENV:-production}
       - HOST=${HOST:-0.0.0.0}
-      - PORT=${PORT:-8800}
+      - PORT=${PORT:-:8800}
       - DB_PATH=${DB_PATH:-/app/databases/steamshark.db}
     volumes:
       # Persist the SQLite DB outside the container
       - steamshark_db:/app/databases
-    expose:
-      - 8800
+    ports:
+      - 8800:8800
 
 volumes:
   steamshark_db:
