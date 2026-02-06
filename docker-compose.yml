@@ -16,7 +16,7 @@ services:
     ports:
       - 8800:8800
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8800/"]
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8800/healthz"]
       interval: 10s
       timeout: 3s
       retries: 5

@@ -13,7 +13,7 @@ func SetupRouter(websiteController *websiteControllers.WebsiteController, occurr
 	v1 := router.Group("/api/v1")
 	{
 		// Health check
-		v1.GET("/health", healthController.NewHealthController().Ping)
+		v1.GET("/healthz", healthController.NewHealthController().Ping)
 
 		//GETS
 		v1.GET("/websites", websiteController.ListWebsites)
