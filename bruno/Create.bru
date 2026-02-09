@@ -1,0 +1,28 @@
+meta {
+  name: Create
+  type: http
+  seq: 1
+}
+
+post {
+  url: https://api.steamshark.app/api/v1/websites
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "url": "https://example.com",
+    "domain": "example.com",
+    "display_name": "Example Platform",
+    "tld": "com",
+    "description": "Official website for Example services and tools",
+    "type": "website",
+    "ssl_certificate": true,
+    "is_official": true,
+    "steam_login_present": false,
+    "status": "active",
+    "risk_score": 0.92,
+    "notes": "Verified ownership and valid certificate. No suspicious behavior detected."
+  }
+}

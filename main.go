@@ -19,19 +19,22 @@ func init() {
 }
 
 func main() {
+	/* Get configuration */
 	config, err := helpers.LoadConfig()
 	if err != nil {
 		log.Fatal("Error loading configuration: ", err)
 	}
+	/* Start gin instance */
 	r := gin.New()
 	r.Use(gin.Logger())
 	r.Use(gin.Recovery())
 	r.Use(middlewares.SecurityHeaders()) //Use better security headers
 	r.Use(middlewares.CORSPolicy())      //Use cors
 
-	//Add logger
+	/* Start Logger */
 	logger := zap.Must(zap.NewProduction())
 
+	/* Cehck which env is going to be used */
 	switch config.Env {
 	case "production", "prod":
 		gin.SetMode(gin.ReleaseMode)
@@ -66,6 +69,7 @@ func main() {
 	/* IMPLEMENT ROUTER */
 	router := routes.SetupRouter(websiteController, occurrenceWebsiteController)
 
+	/* Start Server */
 	if err := router.Run(config.Port); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 		logger.Fatal("Failed to start the server!", zap.Error(err))

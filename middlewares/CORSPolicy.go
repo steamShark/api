@@ -4,14 +4,18 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// CORSPolicy is a middleware that adds CORS headers to the response
+/*
+@brief: CORS policy middleware to the response
+*/
 func CORSPolicy() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		/* Get the origin */
 		origin := c.GetHeader("Origin")
 
-		// In dev you can loosen this, or load from config/env
+		/* Map with allowed origin */
 		allowedOrigins := map[string]bool{
-			"http://localhost:8080":      true,
+			"http://localhost:8090":      true,
+			"https://steamshark.app":     true,
 			"https://www.steamshark.app": true,
 		}
 
@@ -24,7 +28,8 @@ func CORSPolicy() gin.HandlerFunc {
 			c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 		}
 
-		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
+		//For now, only GET will be supported
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET") //, POST, PUT, PATCH, DELETE, OPTIONS
 		c.Writer.Header().Set("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization")
 
 		// Handle preflight requests
