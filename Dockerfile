@@ -17,7 +17,7 @@ GOARCH=amd64 \
 GOFLAGS=-buildvcs=false
 # Adjust the build path to your main package
 # If your main is at ./cmd/api/main.go, build like this:
-RUN go build -ldflags "-s -w" -o /out/app .
+RUN go build -o /out/app ./cmd/api
 
 # --- Runtime stage ---
 FROM alpine:3.20
