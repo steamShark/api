@@ -3,7 +3,6 @@ package db
 import (
 	"errors"
 	"fmt"
-	"steamshark-api/internal/models"
 
 	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
@@ -17,9 +16,9 @@ func InitDB(dbPath string) (*gorm.DB, error) {
 		return nil, errors.New("Failed to connect to DB_PATH")
 	}
 
-	if err := db.AutoMigrate(&models.Website{}, &models.Occurrence{}); err != nil {
+	/* if err := db.AutoMigrate(&models.Website{}, &models.Occurrence{}); err != nil {
 		return nil, errors.Join(errors.New("Auto migrate failed: "), err)
-	}
+	} */
 
 	return db, nil
 }

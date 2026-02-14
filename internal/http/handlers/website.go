@@ -90,6 +90,8 @@ func (handler *WebisteHandler) ListWebsites(ctx *gin.Context) {
 
 	query := handler.db.WithContext(ctx).Model(&models.Website{})
 
+	fmt.Println("query ", query)
+
 	/* VERIFY IF THERE IS IN PARAMS */
 	if *filters.IsNotTrustedEnabled {
 		if filters.IsNotTrusted != nil {
@@ -112,6 +114,8 @@ func (handler *WebisteHandler) ListWebsites(ctx *gin.Context) {
 		utils.Error(ctx, http.StatusInternalServerError, "Error while trying to found the websites")
 		return
 	}
+
+	fmt.Println("total ", total)
 
 	var items []models.Website
 	if err := query. /* Preload("Website"). */

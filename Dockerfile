@@ -24,11 +24,11 @@ FROM alpine:3.20
 # Set a working directory for the app
 WORKDIR /app
 # Create non-root user (this must be BEFORE USER app)
-RUN addgroup -S app && adduser -S app -G app
+#RUN addgroup -S app && adduser -S app -G app
 # Add a tiny tool for healthcheck
 RUN apk add --no-cache wget
-# Create sqlite directory and give it to app user
-RUN mkdir -p /app/databases && chown -R app:app /app
+# Create sqlite directory and give it to app user  && chown -R app:app /app
+RUN mkdir -p /app/data
 # Copy the binary
 COPY --from=build /out/app /app/app
 # Listen on PORT
@@ -36,6 +36,6 @@ EXPOSE 8800
 # Basic healthcheck hitting /health (customize to your route)
 HEALTHCHECK --interval=30s --timeout=3s --retries=3 CMD wget -qO- http://localhost:${PORT}/health || exit 1
 
-USER app
+#USER app
 
 ENTRYPOINT ["/app/app"]

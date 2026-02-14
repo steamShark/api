@@ -4,15 +4,14 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    restart: unless-stopped
+    restart: no
     environment:
       - APP_ENV=${APP_ENV:-dev}
       - HOST=${HOST:-0.0.0.0}
       - PORT=${PORT:-:8800}
-      - DB_PATH=${DB_PATH:-/app/databases/steamshark.db}
+      - DB_PATH=${DB_PATH:-/app/data/steamshark.db}
     volumes:
-      # Persist the SQLite DB outside the container
-      - steamshark_db:/app/databases
+      - ./db/steamshark.db:/app/data/steamshark.db
     ports:
       - 8800:8800
     healthcheck:
@@ -22,5 +21,5 @@ services:
       retries: 5
       start_period: 15s
 
-volumes:
-  steamshark_db:
+#volumes:
+#  steamshark_db:

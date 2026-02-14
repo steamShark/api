@@ -53,7 +53,7 @@ func Build(cfg config.Config, logger *zap.Logger, db *gorm.DB) http.Handler {
 		router.GET("/readyz", healthHandler.Readyz)
 
 		//GETS
-		v1.GET("/websites")
+		v1.GET("/websites", websiteHandler.ListWebsites)
 		v1.GET("/websites/:identification", websiteHandler.GetByIdorDomain)
 		//Extension
 		//v1.GET("/websites/extension", websiteController.GetExtensions)
