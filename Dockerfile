@@ -6,6 +6,8 @@ WORKDIR /src
 COPY go.mod go.sum ./
 RUN go mod download
 
+RUN apk add --no-cache git build-base sqlite-dev
+
 # Copy the rest of the source
 COPY . .
 
