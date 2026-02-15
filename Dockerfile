@@ -33,6 +33,7 @@ RUN mkdir -p /app/data
 
 # Copy the binary
 COPY --from=build /out/app /app/app
+COPY --from=build /src/db /app/data
 
 # Listen on PORT
 EXPOSE 8800
