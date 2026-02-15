@@ -11,7 +11,7 @@ services:
       - PORT=${PORT:-:8800}
       - DB_PATH=${DB_PATH:-/app/data/steamshark.db}
     volumes:
-      - ./db/steamshark.db:/app/data/steamshark.db
+      - ./db:/app/data
     ports:
       - 8800:8800
     healthcheck:
