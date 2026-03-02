@@ -10,7 +10,7 @@ services:
       - HOST=${HOST:-0.0.0.0}
       - PORT=${PORT:-:8800}
       - DB_PATH=${DB_PATH:-/app/data/steamshark.db}
-      - DB_HOST=${DB_HOST:-steamshark-db}
+      - DB_HOST=${DB_HOST:-db}
       - DB_PORT=${DB_PORT:-5432}
       - POSTGRES_USER=${POSTGRES_USER:-postgres}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
@@ -30,7 +30,6 @@ services:
       retries: 5
       start_period: 15s
   db:
-    container_name: steamshark-db
     image: postgres
     environment:
       - POSTGRES_USER=${POSTGRES_USER:-postgres}
