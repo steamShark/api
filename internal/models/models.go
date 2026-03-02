@@ -1,6 +1,7 @@
 package models
 
 import (
+	model_config "steamshark-api/internal/models/config"
 	model_filters "steamshark-api/internal/models/filters"
 	model_pagination "steamshark-api/internal/models/pagination"
 	model_response "steamshark-api/internal/models/response"
@@ -27,4 +28,7 @@ type (
 
 	/* RESPONSE models */
 	APIResponse[T any] = model_response.ApiResponse[T]
+
+	/* CONFIG */
+	Config = model_config.Config
 )

@@ -7,7 +7,7 @@ import (
 	"os"
 	"os/signal"
 	"steamshark-api/internal/config"
-	"steamshark-api/internal/db"
+	database "steamshark-api/internal/db"
 	httpserver "steamshark-api/internal/http"
 	"syscall"
 	"time"
@@ -33,7 +33,7 @@ func main() {
 	logger.Info("starting api", zap.String("env", cfg.Env), zap.String("addr", cfg.Port))
 
 	/* Connect to DB */
-	db, err := db.InitDB(cfg.DBPath)
+	db, err := database.InitDB(cfg)
 	if err != nil { //If cannot conenct to db, just exit the program with error
 		logger.Fatal("Database init error", zap.Error(err))
 		os.Exit(1)

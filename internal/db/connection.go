@@ -1,24 +1,28 @@
-package db
+package database
 
 import (
 	"errors"
 	"fmt"
+	"steamshark-api/internal/models"
 
-	"github.com/glebarez/sqlite"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
-func InitDB(dbPath string) (*gorm.DB, error) {
-	// Open DB using glebarez/sqlite
-	db, err := gorm.Open(sqlite.Open(dbPath), &gorm.Config{})
-	if err != nil {
-		fmt.Printf("Failed to connect to DB_PATH: %v", err)
-		return nil, errors.New("Failed to connect to DB_PATH")
-	}
+func InitDB(cfg *models.Config) (*gorm.DB, error) {
+	dsn := fmt.Sprintf(
+		"host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=UTC",
+		cfg.DBHost,
+		cfg.DBUser,
+		cfg.DBPassword,
+		cfg.DBName,
+		cfg.DBPort,
+	)
 
-	/* if err := db.AutoMigrate(&models.Website{}, &models.Occurrence{}); err != nil {
-		return nil, errors.Join(errors.New("Auto migrate failed: "), err)
-	} */
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	if err != nil {
+		return nil, errors.New("failed to connect to postgres")
+	}
 
 	return db, nil
 }

@@ -2,8 +2,8 @@ package http
 
 import (
 	"net/http"
-	"steamshark-api/internal/config"
 	"steamshark-api/internal/http/routes"
+	"steamshark-api/internal/models"
 
 	"go.uber.org/zap"
 	"gorm.io/gorm"
@@ -12,7 +12,7 @@ import (
 /*
 @brief: start the HTTP server
 */
-func New(cfg config.Config, log *zap.Logger, db *gorm.DB) *http.Server {
+func New(cfg models.Config, log *zap.Logger, db *gorm.DB) *http.Server {
 	router := routes.Build(cfg, log, db)
 
 	return &http.Server{

@@ -6,13 +6,13 @@ WORKDIR /src
 COPY go.mod go.sum ./
 RUN go mod download
 
-RUN apk add --no-cache git build-base sqlite-dev
+RUN apk add --no-cache git build-base
 
 # Copy the rest of the source
 COPY . .
 
 # Set reproducible build flags
-ENV CGO_ENABLED=1 \
+ENV CGO_ENABLED=0 \
 GOOS=linux \
 GOARCH=amd64 \
 GOFLAGS=-buildvcs=false

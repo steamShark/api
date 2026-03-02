@@ -2,9 +2,9 @@ package routes
 
 import (
 	"net/http"
-	"steamshark-api/internal/config"
 	"steamshark-api/internal/http/handlers"
 	"steamshark-api/internal/http/middlewares"
+	"steamshark-api/internal/models"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -14,7 +14,7 @@ import (
 /*
 @brief: Function responsible to build the gin server, add the middlewares and store the routes to the app
 */
-func Build(cfg config.Config, logger *zap.Logger, db *gorm.DB) http.Handler {
+func Build(cfg models.Config, logger *zap.Logger, db *gorm.DB) http.Handler {
 	/* Cehck which env is going to be used */
 	switch cfg.Env {
 	case "production", "prod":
