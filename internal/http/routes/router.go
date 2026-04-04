@@ -5,6 +5,7 @@ import (
 	"steamshark-api/internal/http/handlers"
 	"steamshark-api/internal/http/middlewares"
 	"steamshark-api/internal/models"
+	"steamshark-api/internal/utils"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -59,17 +60,21 @@ func Build(cfg models.Config, logger *zap.Logger, db *gorm.DB) http.Handler {
 		//v1.GET("/websites/extension", websiteController.GetExtensions)
 
 		//POSTS
-		v1.POST("/websites", websiteHandler.Create)
+		//v1.POST("/websites", websiteHandler.Create)
 		//VERIFY RECORDS
-		v1.POST("/websites/:id/verify", websiteHandler.VerifyWebsiteById) /* ADMIN ONLY */
+		//v1.POST("/websites/:id/verify", websiteHandler.VerifyWebsiteById) /* ADMIN ONLY */
 
 		//PUT
-		v1.PUT("/websites/:id", websiteHandler.Update)
+		//v1.PUT("/websites/:id", websiteHandler.Update)
 
 		//DELET
-		v1.DELETE("/websites/:id", websiteHandler.Delete)
+		//v1.DELETE("/websites/:id", websiteHandler.Delete)
 
 	}
+
+	router.NoRoute(func(ctx *gin.Context) {
+		utils.Error(ctx, http.StatusNotFound, "Route not found!")
+	})
 
 	return router
 }
