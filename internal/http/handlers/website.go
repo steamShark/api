@@ -111,7 +111,7 @@ func (handler *WebisteHandler) ListWebsites(ctx *gin.Context) {
 	var total int64
 	if err := query.Count(&total).Error; err != nil {
 		handler.logger.Error("error while getting total of items " + err.Error())
-		utils.Error(ctx, http.StatusInternalServerError, "Error while trying to found the websites")
+		utils.Error(ctx, http.StatusInternalServerError, "Error while trying to find the websites")
 		return
 	}
 
@@ -124,7 +124,7 @@ func (handler *WebisteHandler) ListWebsites(ctx *gin.Context) {
 				Offset((pagination.Page - 1) * pagination.PageSize).
 				Find(&items).Error; err != nil {
 		handler.logger.Error("error while processing the list websites " + err.Error())
-		utils.Error(ctx, http.StatusInternalServerError, "Error while trying to found the websites")
+		utils.Error(ctx, http.StatusInternalServerError, "Error while trying to find the websites")
 		return
 	}
 
