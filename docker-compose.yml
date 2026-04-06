@@ -34,7 +34,7 @@ services:
     environment:
       - POSTGRES_USER=${POSTGRES_USER:-postgres}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
-      - PGDATA={POSTGRES_DATA:-/data/postgres}
+      - PGDATA=${POSTGRES_DATA:-/data/postgres}
       - POSTGRES_DB=${POSTGRES_DB:-steamshark}
     volumes:
       - db:/data/postgres
@@ -47,7 +47,7 @@ services:
       - db
     restart: unless-stopped
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -d postgres" ]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-steamshark}"]
       interval: 30s
       timeout: 10s
       retries: 5
