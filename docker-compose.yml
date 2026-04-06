@@ -88,6 +88,7 @@ configs:
         notes text,
         created_at timestamptz NOT NULL DEFAULT now(),
         updated_at timestamptz NOT NULL DEFAULT now(),
+
         CHECK (risk_score >= 0.0 AND risk_score <= 100.0),
         CHECK (type IN ('website','tool','extension')),
         CHECK (risk_level IN ('unknown','none','low','medium','high','critical')),
@@ -97,14 +98,14 @@ configs:
       CREATE INDEX IF NOT EXISTS idx_websites_url ON websites(url);
 
       CREATE OR REPLACE FUNCTION set_updated_at()
-      RETURNS trigger AS $$
+      RETURNS trigger AS $func$
       BEGIN
         NEW.updated_at := now();
         RETURN NEW;
       END;
-      $$ LANGUAGE plpgsql;
+      $func$ LANGUAGE plpgsql;
 
-      DO $$
+      DO $block$
       BEGIN
         IF NOT EXISTS (
           SELECT 1
@@ -117,7 +118,7 @@ configs:
           EXECUTE FUNCTION set_updated_at();
         END IF;
       END;
-      $$;
+      $block$;
 
   seed_sql:
     content: |
