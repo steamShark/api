@@ -1,6 +1,7 @@
 package middlewares
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -31,6 +32,14 @@ func ZapLogger(log *zap.Logger) gin.HandlerFunc {
 		start := time.Now()
 		path := c.Request.URL.Path
 		raw := c.Request.URL.RawQuery
+
+		fmt.Println("PATHHHHH ", path)
+
+		if path == "/healthz" {
+			fmt.Println("dont log")
+			c.Next()
+			return
+		}
 
 		c.Next()
 

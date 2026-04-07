@@ -14,8 +14,6 @@ func CORSPolicy() gin.HandlerFunc {
 		/* Get the origin */
 		origin := c.GetHeader("Origin")
 
-		fmt.Println("origin ", origin)
-
 		/* Map with allowed origin */
 		allowedOrigins := map[string]bool{
 			"http://localhost:8090":      true,
