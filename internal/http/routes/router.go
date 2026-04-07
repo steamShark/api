@@ -55,7 +55,7 @@ func Build(cfg models.Config, logger *zap.Logger, db *gorm.DB) http.Handler {
 
 		//GETS
 		v1.GET("/websites", websiteHandler.ListWebsites)
-		v1.GET("/websites/:identification", websiteHandler.GetByIdorDomain)
+		v1.GET("/websites/:identification", websiteHandler.GetByIdOrDomain)
 		//Extension
 		//v1.GET("/websites/extension", websiteController.GetExtensions)
 

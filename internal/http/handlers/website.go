@@ -155,7 +155,7 @@ Gets a specific website, by identification, id or the domain of the website (eg.
   - 403: no access (made through middleware)
   - 500: internal server error
 */
-func (handler *WebisteHandler) GetByIdorDomain(ctx *gin.Context) {
+func (handler *WebisteHandler) GetByIdOrDomain(ctx *gin.Context) {
 	identification := strings.TrimSpace(ctx.Param("identification"))
 	if identification == "" {
 		handler.logger.Error("missing identification, it must be either id or website url")
@@ -168,10 +168,10 @@ func (handler *WebisteHandler) GetByIdorDomain(ctx *gin.Context) {
 	//Check if it's an uuid
 	// If it's a UUID, fetch by ID; otherwise by domain.
 	if uuid.Validate(identification) == nil {
-		db := handler.db.WithContext(ctx).
-			Preload("Occurrences", func(tx *gorm.DB) *gorm.DB {
-				return tx.Order("created_at DESC")
-			})
+		db := handler.db.WithContext(ctx) /* .
+		Preload("Occurrences", func(tx *gorm.DB) *gorm.DB {
+			return tx.Order("created_at DESC")
+		}) */
 
 		// First try lookup by ID
 		err := db.Where("id = ?", identification).First(&website).Error
@@ -187,10 +187,10 @@ func (handler *WebisteHandler) GetByIdorDomain(ctx *gin.Context) {
 			}
 		}
 	} else { //if it's to search by domain/name
-		db := handler.db.WithContext(ctx).
-			Preload("Occurrences", func(tx *gorm.DB) *gorm.DB {
-				return tx.Order("created_at DESC")
-			})
+		db := handler.db.WithContext(ctx) /* .
+		Preload("Occurrences", func(tx *gorm.DB) *gorm.DB {
+			return tx.Order("created_at DESC")
+		}) */
 
 		err := db.Where("domain = ?", identification).First(&website).Error
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -200,7 +200,7 @@ func (handler *WebisteHandler) GetByIdorDomain(ctx *gin.Context) {
 		}
 	}
 
-	handler.logger.Error("Website found!")
+	handler.logger.Info("Website found!")
 	utils.Success(ctx, "Website found", website)
 }
 
