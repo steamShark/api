@@ -30,19 +30,18 @@ services:
       retries: 5
       start_period: 15s
   db:
-    image: postgres
+    image: postgres:18
     environment:
       - POSTGRES_USER=${POSTGRES_USER:-postgres}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
       - PGDATA=${POSTGRES_DATA:-/data/postgres}
       - POSTGRES_DB=${POSTGRES_DB:-steamshark}
+      - PGDATA=/var/lib/postgresql/data/pgdata
     volumes:
-      - db:/data/postgres
+      - db:/var/lib/postgresql/data/pgdata
     configs:
       - source: schema_sql
         target: /docker-entrypoint-initdb.d/01_schema.sql
-      - source: seed_sql
-        target: /docker-entrypoint-initdb.d/02_seed.sql
     #ports:
     #  - "5332:5432"
     expose:

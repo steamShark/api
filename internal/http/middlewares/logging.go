@@ -35,7 +35,8 @@ func ZapLogger(log *zap.Logger) gin.HandlerFunc {
 
 		fmt.Println("PATHHHHH ", path)
 
-		if path == "/healthz" {
+		//dont log the utility funcs
+		if path == "/healthz" || path == "/api/v1/healthz" || path == "/api/v1/readyz" {
 			fmt.Println("dont log")
 			c.Next()
 			return
