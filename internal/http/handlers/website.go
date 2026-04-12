@@ -155,11 +155,11 @@ Gets a specific website, by identification, id or the domain of the website (eg.
   - 403: no access (made through middleware)
   - 500: internal server error
 */
-func (handler *WebisteHandler) GetByIdOrDomain(ctx *gin.Context) {
+func (handler *WebisteHandler) GetByIdOrDomainOrURL(ctx *gin.Context) {
 	identification := strings.TrimSpace(ctx.Param("identification"))
 	if identification == "" {
-		handler.logger.Error("missing identification, it must be either id or website url")
-		utils.Error(ctx, http.StatusBadRequest, "missing identification, it must be either id or website url")
+		handler.logger.Error("missing identification, it must be either id or website url/domain")
+		utils.Error(ctx, http.StatusBadRequest, "missing identification, it must be either id or website url/domain")
 		return
 	}
 
@@ -186,7 +186,19 @@ func (handler *WebisteHandler) GetByIdOrDomain(ctx *gin.Context) {
 				return
 			}
 		}
+	} else if strings.Contains(identification, "https://") { //if identification contains https://
+		db := handler.db.WithContext(ctx)
+
+		err := db.Where("url = ?", identification).First(&website).Error
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			handler.logger.Error("Error while searching for the url " + err.Error())
+			utils.Error(ctx, http.StatusNotFound, "no website found with provided url")
+			return
+		}
 	} else { //if it's to search by domain/name
+		//remove the www. that could be contained
+		strings.ReplaceAll(identification, "www.", "")
+		//Get the database  with the context
 		db := handler.db.WithContext(ctx) /* .
 		Preload("Occurrences", func(tx *gorm.DB) *gorm.DB {
 			return tx.Order("created_at DESC")
