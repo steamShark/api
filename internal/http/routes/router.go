@@ -61,9 +61,10 @@ func Build(cfg models.Config, logger *zap.Logger, db *gorm.DB) http.Handler {
 		//v1.GET("/websites/extension", websiteController.GetExtensions)
 
 		//POSTS
-		//v1.POST("/websites", websiteHandler.Create)
-		//VERIFY RECORDS
-		//v1.POST("/websites/:id/verify", websiteHandler.VerifyWebsiteById) /* ADMIN ONLY */
+		v1.POST("/websites", websiteHandler.Create)
+
+		// Admin-only — requires X-Admin-Key header
+		v1.POST("/websites/:id/verify", middlewares.AdminKeyAuth(cfg.AdminKey), websiteHandler.VerifyWebsiteById)
 
 		//PUT
 		//v1.PUT("/websites/:id", websiteHandler.Update)
@@ -79,7 +80,7 @@ func Build(cfg models.Config, logger *zap.Logger, db *gorm.DB) http.Handler {
 		v1.DELETE("/occurrences/:id", occurrenceHandler.DeleteOccurrence)
 
 		// Occurrences — scoped to a website
-		v1.GET("/websites/:id/occurrences", occurrenceHandler.ListOccurrencesByWebsite)
+		//v1.GET("/websites/:id/occurrences", occurrenceHandler.ListOccurrencesByWebsite)
 
 	}
 
