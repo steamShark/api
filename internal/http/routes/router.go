@@ -44,12 +44,13 @@ func Build(cfg models.Config, logger *zap.Logger, db *gorm.DB) http.Handler {
 	logger.Info("Starting http Handlers!")
 	healthHandler := handlers.NewHealth(logger, db)
 	websiteHandler := handlers.NewWebisteHandler(logger, db)
+	occurrenceHandler := handlers.NewOccurrenceHandler(logger, db)
 
 	/* v1 API Group */
 	logger.Info("Starting http v1 API group!")
 	v1 := router.Group("/api/v1")
 	{
-		// Health check
+		// Health chec
 		router.GET("/healthz", healthHandler.Healthz)
 		router.GET("/readyz", healthHandler.Readyz)
 
@@ -60,15 +61,26 @@ func Build(cfg models.Config, logger *zap.Logger, db *gorm.DB) http.Handler {
 		//v1.GET("/websites/extension", websiteController.GetExtensions)
 
 		//POSTS
-		//v1.POST("/websites", websiteHandler.Create)
-		//VERIFY RECORDS
-		//v1.POST("/websites/:id/verify", websiteHandler.VerifyWebsiteById) /* ADMIN ONLY */
+		v1.POST("/websites", websiteHandler.Create)
+
+		// Admin-only — requires X-Admin-Key header
+		v1.POST("/websites/:id/verify", middlewares.AdminKeyAuth(cfg.AdminKey), websiteHandler.VerifyWebsiteById)
 
 		//PUT
 		//v1.PUT("/websites/:id", websiteHandler.Update)
 
 		//DELET
 		//v1.DELETE("/websites/:id", websiteHandler.Delete)
+
+		// Occurrences — standalone CRUD
+		v1.GET("/occurrences", occurrenceHandler.ListOccurrences)
+		v1.GET("/occurrences/:id", occurrenceHandler.GetOccurrence)
+		v1.POST("/occurrences", occurrenceHandler.CreateOccurrence)
+		v1.PUT("/occurrences/:id", occurrenceHandler.UpdateOccurrence)
+		v1.DELETE("/occurrences/:id", occurrenceHandler.DeleteOccurrence)
+
+		// Occurrences — scoped to a website
+		//v1.GET("/websites/:id/occurrences", occurrenceHandler.ListOccurrencesByWebsite)
 
 	}
 

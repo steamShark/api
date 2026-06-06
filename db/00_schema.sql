@@ -28,6 +28,24 @@ CREATE TABLE IF NOT EXISTS websites (
 -- INDEX
 CREATE INDEX IF NOT EXISTS idx_websites_url ON websites(url);
 
+-- OCCURRENCES TABLE
+CREATE TABLE IF NOT EXISTS occurrences (
+  id text PRIMARY KEY,
+  website_id text NOT NULL REFERENCES websites(id) ON UPDATE CASCADE ON DELETE CASCADE,
+  description text,
+  url_reported text NOT NULL,
+  country_code char(2),
+  severity text NOT NULL DEFAULT 'medium',
+  status text NOT NULL DEFAULT 'pending',
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+
+  CHECK (severity IN ('info','low','medium','high','critical')),
+  CHECK (status IN ('pending','verified','rejected'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_occurrences_website_id ON occurrences(website_id);
+
 -- UPDATED_AT trigger function
 CREATE OR REPLACE FUNCTION set_updated_at()
 RETURNS trigger AS $$
