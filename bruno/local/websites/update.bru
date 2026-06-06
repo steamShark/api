@@ -1,0 +1,36 @@
+meta {
+  name: update
+  type: http
+  seq: 1
+}
+
+put {
+  url: {{URL}}{{API_HANDLER}}/websites/d2b8b9fd-146d-4250-ba37-e7b0a21183b2
+  body: json
+  auth: inherit
+}
+
+headers {
+  X-Admin-Key: adminkey
+}
+
+body:json {
+  {
+    "url": "https://steampowereddd.com",
+    "domain": "steampowereddd.com",
+    "display_name": "Steam Powered",
+    "tld": "com",
+    "description": "Official Steam store website22222",
+    "type": "website",
+    "ssl_certificate": true,
+    "is_official": true,
+    "steam_login_present": true,
+    "status": "active",
+    "risk_score": 0
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
