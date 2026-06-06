@@ -1,0 +1,20 @@
+meta {
+  name: delete
+  type: http
+  seq: 1
+}
+
+delete {
+  url: {{URL}}{{API_HANDLER}}/websites/d2b8b9fd-146d-4250-ba37-e7b0a21183b2
+  body: none
+  auth: inherit
+}
+
+headers {
+  X-Admin-Key: adminkey
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

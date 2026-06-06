@@ -60,17 +60,14 @@ func Build(cfg models.Config, logger *zap.Logger, db *gorm.DB) http.Handler {
 		//Extension
 		//v1.GET("/websites/extension", websiteController.GetExtensions)
 
-		//POSTS
-		v1.POST("/websites", websiteHandler.Create)
-
-		// Admin-only — requires X-Admin-Key header
-		v1.POST("/websites/:id/verify", middlewares.AdminKeyAuth(cfg.AdminKey), websiteHandler.VerifyWebsiteById)
-
-		//PUT
-		//v1.PUT("/websites/:id", websiteHandler.Update)
-
-		//DELET
-		//v1.DELETE("/websites/:id", websiteHandler.Delete)
+		// Admin-only — all mutating website endpoints require X-Admin-Key header
+		admin := v1.Group("/websites", middlewares.AdminKeyAuth(cfg.AdminKey))
+		{
+			admin.POST("", websiteHandler.Create)
+			admin.POST("/:id/verify", websiteHandler.VerifyWebsiteById)
+			admin.PUT("/:id", websiteHandler.Update)
+			admin.DELETE("/:id", websiteHandler.Delete)
+		}
 
 		// Occurrences — standalone CRUD
 		v1.GET("/occurrences", occurrenceHandler.ListOccurrences)
