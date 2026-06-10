@@ -1,0 +1,53 @@
+name: "Build project"
+
+on: 
+    push:
+        branches: [main]
+    pull_request:
+        branches: [main]
+
+jobs:
+    build:
+        name: "Install dependencies"
+        runs-on: ubuntu-latest
+        
+        # sets up postgres serice in order to the api to connect
+        services:
+            postgres:
+                image: postgres:18
+                env:
+                    POSTGRES_USER: postgres
+                    POSTGRES_PASSWORD: postgres
+                    POSTGRES_DB: steamshark_test
+                options: >-
+                    --health-cmd pg_isready
+                    --health-interval 10s
+                    --health-timeout 5s
+                    --health-retries 5
+                ports:
+                    - 5432:5432
+
+        ## Setup the env vars so the api uses it
+        env:
+            DB_HOST: localhost
+            DB_PORT: 5432
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: postgres
+            POSTGRES_DB: steamshark_test
+            DB_SSLMODE: disable
+            ADMIN_SECRET_KEY: test-key
+
+        steps:
+            - uses: actions/checkout@v4
+            - name: Setup Go
+              uses: actions/setup-go@v5
+              with:
+                go-version-file: go.mod
+                cache: true # Cache dependecies, to not reinstall them after each try
+            - name: Build
+              run: go build -o ./bin/app ./cmd/api 
+            - name: Vet
+              run: go vet ./...
+            - name: Test
+              run: go test ./...
+                
