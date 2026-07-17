@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"net/url"
 	"steamshark-api/internal/dtos"
@@ -90,8 +89,6 @@ func (handler *WebisteHandler) ListWebsites(ctx *gin.Context) {
 
 	query := handler.db.WithContext(ctx).Model(&models.Website{})
 
-	fmt.Println("query ", query)
-
 	/* VERIFY IF THERE IS IN PARAMS */
 	if *filters.IsNotTrustedEnabled {
 		if filters.IsNotTrusted != nil {
@@ -115,8 +112,6 @@ func (handler *WebisteHandler) ListWebsites(ctx *gin.Context) {
 		return
 	}
 
-	fmt.Println("total ", total)
-
 	var items []models.Website
 	if err := query. /* Preload("Website"). */
 				Order("updated_at DESC").
@@ -127,8 +122,6 @@ func (handler *WebisteHandler) ListWebsites(ctx *gin.Context) {
 		utils.Error(ctx, http.StatusInternalServerError, "Error while trying to find the websites")
 		return
 	}
-
-	fmt.Println(items)
 
 	// shape: { data, count, limit, offset }
 	utils.SuccessList(ctx, "Websites listed", gin.H{
@@ -168,43 +161,27 @@ func (handler *WebisteHandler) GetByIdOrDomainOrURL(ctx *gin.Context) {
 	//Check if it's an uuid
 	// If it's a UUID, fetch by ID; otherwise by domain.
 	if uuid.Validate(identification) == nil {
-		db := handler.db.WithContext(ctx) /* .
-		Preload("Occurrences", func(tx *gorm.DB) *gorm.DB {
-			return tx.Order("created_at DESC")
-		}) */
-
-		// First try lookup by ID
-		err := db.Where("id = ?", identification).First(&website).Error
+		err := handler.db.WithContext(ctx).Where("id = ?", identification).First(&website).Error
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				handler.logger.Error("no website found with provided id")
 				utils.Error(ctx, http.StatusNotFound, "no website found with provided id")
 				return
-			} else { // DB error on ID lookup
-				handler.logger.Error("Error while searching for the id " + err.Error())
-				utils.Error(ctx, http.StatusNotFound, "no website found with provided id")
-				return
 			}
+			handler.logger.Error("Error while searching for the id " + err.Error())
+			utils.Error(ctx, http.StatusInternalServerError, "no website found with provided id")
+			return
 		}
-	} else if strings.Contains(identification, "https://") { //if identification contains https://
-		db := handler.db.WithContext(ctx)
-
-		err := db.Where("url = ?", identification).First(&website).Error
+	} else if strings.Contains(identification, "https://") {
+		err := handler.db.WithContext(ctx).Where("url = ?", identification).First(&website).Error
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			handler.logger.Error("Error while searching for the url " + err.Error())
 			utils.Error(ctx, http.StatusNotFound, "no website found with provided url")
 			return
 		}
-	} else { //if it's to search by domain/name
-		//remove the www. that could be contained
+	} else {
 		strings.ReplaceAll(identification, "www.", "")
-		//Get the database  with the context
-		db := handler.db.WithContext(ctx) /* .
-		Preload("Occurrences", func(tx *gorm.DB) *gorm.DB {
-			return tx.Order("created_at DESC")
-		}) */
-
-		err := db.Where("domain = ?", identification).First(&website).Error
+		err := handler.db.WithContext(ctx).Where("domain = ?", identification).First(&website).Error
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			handler.logger.Error("Error while searching for the domain " + err.Error())
 			utils.Error(ctx, http.StatusNotFound, "no website found with provided domain")
@@ -212,8 +189,14 @@ func (handler *WebisteHandler) GetByIdOrDomainOrURL(ctx *gin.Context) {
 		}
 	}
 
+	var occurrencesCount int64
+	handler.db.WithContext(ctx).Model(&models.Occurrence{}).Where("website_id = ?", website.ID).Count(&occurrencesCount)
+
 	handler.logger.Info("Website found!")
-	utils.Success(ctx, "Website found", website)
+	utils.Success(ctx, "Website found", gin.H{
+		"website":           website,
+		"occurrences_count": occurrencesCount,
+	})
 }
 
 /*
@@ -374,7 +357,6 @@ func (handler *WebisteHandler) Update(ctx *gin.Context) {
 		return
 	}
 
-	fmt.Println("in ", in)
 	/* convert dto to model */
 	updateWebsite, err := helpers.ConvertWebsiteDTOModelUpdate(in)
 	if err != nil {
@@ -410,7 +392,6 @@ func (handler *WebisteHandler) Update(ctx *gin.Context) {
 		utils.Error(ctx, http.StatusInternalServerError, "error while updating the website")
 		return
 	}
-	fmt.Println("website dto return ", createWebsiteReturnDTO)
 	utils.Success(ctx, "Website updated", createWebsiteReturnDTO)
 }
 

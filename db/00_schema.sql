@@ -2,7 +2,7 @@
 CREATE TABLE IF NOT EXISTS websites (
   id text PRIMARY KEY,                    -- UUID string stored as text (or change to uuid)
   url text NOT NULL,
-  domain text NOT NULL UNIQUE,
+  domain text NOT NULL,
   ssl_certificate boolean NOT NULL DEFAULT false,
   display_name text,
   tld text NOT NULL,
@@ -25,21 +25,28 @@ CREATE TABLE IF NOT EXISTS websites (
   CHECK (status IN ('active','inactive','blocked','archived'))
 );
 
--- INDEX
+-- INDEXES
+CREATE UNIQUE INDEX IF NOT EXISTS uni_websites_domain ON websites(domain);
 CREATE INDEX IF NOT EXISTS idx_websites_url ON websites(url);
 
 -- OCCURRENCES TABLE
 CREATE TABLE IF NOT EXISTS occurrences (
   id text PRIMARY KEY,
   website_id text NOT NULL REFERENCES websites(id) ON UPDATE CASCADE ON DELETE CASCADE,
+  type text NOT NULL DEFAULT 'other',
+  source text NOT NULL DEFAULT 'user_report',
   description text,
   url_reported text NOT NULL,
   country_code char(2),
   severity text NOT NULL DEFAULT 'medium',
   status text NOT NULL DEFAULT 'pending',
+  resolution_notes text,
+  resolved_at timestamptz,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
 
+  CHECK (type IN ('phishing','scam','malware','impersonation','fake_giveaway','credential_harvesting','other')),
+  CHECK (source IN ('user_report','automated_scan','admin')),
   CHECK (severity IN ('info','low','medium','high','critical')),
   CHECK (status IN ('pending','verified','rejected'))
 );

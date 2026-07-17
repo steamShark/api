@@ -10,9 +10,16 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
+
+func isUUID(s string) bool {
+	return uuid.Validate(s) == nil
+}
+
+var resolvedStatuses = map[string]bool{"verified": true, "rejected": true}
 
 type OccurrenceHandler struct {
 	logger *zap.Logger
@@ -134,9 +141,19 @@ func (h *OccurrenceHandler) CreateOccurrence(ctx *gin.Context) {
 	if severity == "" {
 		severity = "medium"
 	}
+	occType := in.Type
+	if occType == "" {
+		occType = "other"
+	}
+	source := in.Source
+	if source == "" {
+		source = "user_report"
+	}
 
 	occurrence := models.Occurrence{
 		WebsiteID:   in.WebsiteID,
+		Type:        occType,
+		Source:      source,
 		Description: in.Description,
 		URLReported: in.URLReported,
 		CountryCode: in.CountryCode,
@@ -183,6 +200,9 @@ func (h *OccurrenceHandler) UpdateOccurrence(ctx *gin.Context) {
 	}
 
 	updates := map[string]any{}
+	if in.Type != nil {
+		updates["type"] = *in.Type
+	}
 	if in.Description != nil {
 		updates["description"] = in.Description
 	}
@@ -195,14 +215,28 @@ func (h *OccurrenceHandler) UpdateOccurrence(ctx *gin.Context) {
 	if in.Severity != nil {
 		updates["severity"] = *in.Severity
 	}
+	if in.ResolutionNotes != nil {
+		updates["resolution_notes"] = in.ResolutionNotes
+	}
 	if in.Status != nil {
 		updates["status"] = *in.Status
+		if resolvedStatuses[*in.Status] {
+			now := time.Now().UTC()
+			updates["resolved_at"] = now
+		}
 	}
 
 	if err := h.db.WithContext(ctx).Model(&occurrence).Updates(updates).Error; err != nil {
 		h.logger.Error("error updating occurrence: " + err.Error())
 		utils.Error(ctx, http.StatusInternalServerError, "error updating occurrence")
 		return
+	}
+
+	// Recalculate the website risk score whenever an occurrence is resolved
+	if in.Status != nil && resolvedStatuses[*in.Status] {
+		if err := utils.RecalculateWebsiteRisk(h.db.WithContext(ctx), occurrence.WebsiteID); err != nil {
+			h.logger.Error("error recalculating risk for website " + occurrence.WebsiteID + ": " + err.Error())
+		}
 	}
 
 	utils.Success(ctx, "Occurrence updated", toOccurrenceDTO(occurrence))
@@ -240,21 +274,36 @@ List occurrences scoped to a specific website
 GET /websites/:id/occurrences
 */
 func (h *OccurrenceHandler) ListOccurrencesByWebsite(ctx *gin.Context) {
-	websiteID := strings.TrimSpace(ctx.Param("id"))
-	if websiteID == "" {
-		utils.Error(ctx, http.StatusBadRequest, "missing website id")
+	identification := strings.TrimSpace(ctx.Param("identification"))
+	if identification == "" {
+		utils.Error(ctx, http.StatusBadRequest, "missing website identification")
 		return
 	}
 
-	if err := h.db.WithContext(ctx).First(&models.Website{}, "id = ?", websiteID).Error; err != nil {
+	var website models.Website
+	var err error
+
+	switch {
+	case isUUID(identification):
+		err = h.db.WithContext(ctx).First(&website, "id = ?", identification).Error
+	case strings.Contains(identification, "https://"):
+		err = h.db.WithContext(ctx).First(&website, "url = ?", identification).Error
+	default:
+		identification = strings.ReplaceAll(identification, "www.", "")
+		err = h.db.WithContext(ctx).First(&website, "domain = ?", identification).Error
+	}
+
+	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			utils.Error(ctx, http.StatusNotFound, "website not found")
 			return
 		}
-		h.logger.Error("error checking website: " + err.Error())
+		h.logger.Error("error resolving website: " + err.Error())
 		utils.Error(ctx, http.StatusInternalServerError, "error listing occurrences")
 		return
 	}
+
+	websiteID := website.ID
 
 	page := utils.ParseIntDefault(ctx.Query("page"), 1)
 	pageSize := utils.ParseIntDefault(ctx.Query("page_size"), 50)
@@ -289,7 +338,7 @@ func (h *OccurrenceHandler) ListOccurrencesByWebsite(ctx *gin.Context) {
 		return
 	}
 
-	utils.SuccessList(ctx, "Occurrences listed", gin.H{"data": items}, gin.H{
+	utils.SuccessList(ctx, "Occurrences listed", items, gin.H{
 		"total":     total,
 		"page":      pagination.Page,
 		"page_size": pagination.PageSize,
@@ -297,15 +346,23 @@ func (h *OccurrenceHandler) ListOccurrencesByWebsite(ctx *gin.Context) {
 }
 
 func toOccurrenceDTO(o models.Occurrence) dtos.OccurrenceReturnDTO {
-	return dtos.OccurrenceReturnDTO{
-		ID:          o.ID,
-		WebsiteID:   o.WebsiteID,
-		Description: o.Description,
-		URLReported: o.URLReported,
-		CountryCode: o.CountryCode,
-		Severity:    o.Severity,
-		Status:      o.Status,
-		CreatedAt:   o.CreatedAt.Format(time.RFC3339),
-		UpdatedAt:   o.UpdatedAt.Format(time.RFC3339),
+	dto := dtos.OccurrenceReturnDTO{
+		ID:              o.ID,
+		WebsiteID:       o.WebsiteID,
+		Type:            o.Type,
+		Source:          o.Source,
+		Description:     o.Description,
+		URLReported:     o.URLReported,
+		CountryCode:     o.CountryCode,
+		Severity:        o.Severity,
+		Status:          o.Status,
+		ResolutionNotes: o.ResolutionNotes,
+		CreatedAt:       o.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:       o.UpdatedAt.Format(time.RFC3339),
 	}
+	if o.ResolvedAt != nil {
+		s := o.ResolvedAt.Format(time.RFC3339)
+		dto.ResolvedAt = &s
+	}
+	return dto
 }
