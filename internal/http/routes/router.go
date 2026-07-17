@@ -67,17 +67,17 @@ func Build(cfg models.Config, logger *zap.Logger, db *gorm.DB) http.Handler {
 			admin.POST("/:id/verify", websiteHandler.VerifyWebsiteById)
 			admin.PUT("/:id", websiteHandler.Update)
 			admin.DELETE("/:id", websiteHandler.Delete)
+			admin.POST("/occurrences", occurrenceHandler.CreateOccurrence)
+			admin.PUT("/occurrences/:id", occurrenceHandler.UpdateOccurrence)
+			admin.DELETE("/occurrences/:id", occurrenceHandler.DeleteOccurrence)
 		}
 
 		// Occurrences — standalone CRUD
 		v1.GET("/occurrences", occurrenceHandler.ListOccurrences)
 		v1.GET("/occurrences/:id", occurrenceHandler.GetOccurrence)
-		v1.POST("/occurrences", occurrenceHandler.CreateOccurrence)
-		v1.PUT("/occurrences/:id", occurrenceHandler.UpdateOccurrence)
-		v1.DELETE("/occurrences/:id", occurrenceHandler.DeleteOccurrence)
 
 		// Occurrences — scoped to a website
-		//v1.GET("/websites/:id/occurrences", occurrenceHandler.ListOccurrencesByWebsite)
+		v1.GET("/websites/:identification/occurrences", occurrenceHandler.ListOccurrencesByWebsite)
 
 	}
 
