@@ -1,8 +1,6 @@
 package middlewares
 
 import (
-	"fmt"
-
 	"github.com/gin-gonic/gin"
 )
 
@@ -20,8 +18,6 @@ func CORSPolicy() gin.HandlerFunc {
 			"https://steamshark.app":     true,
 			"https://www.steamshark.app": true,
 		}
-
-		fmt.Println("check ", allowedOrigins[origin])
 
 		if allowedOrigins[origin] {
 			c.Writer.Header().Set("Access-Control-Allow-Origin", origin)
