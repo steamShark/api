@@ -1,0 +1,16 @@
+meta {
+  name: getWebsiteOccurrences
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{URL}}{{API_HANDLER}}/websites/3d62c684-d928-46e7-aee7-0598d7e91d7c/occurrences
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
