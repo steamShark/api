@@ -5,6 +5,14 @@ type Config struct {
 	Host     string // "development" | "production" | "test"
 	Port     string
 	AdminKey string
+	BaseURL  string
+
+	// Steam OpenID
+	SteamAPIKey string
+
+	// JWT
+	JWTSecret string
+	JWTExpiry string
 
 	//database
 	DBHost     string

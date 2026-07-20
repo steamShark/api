@@ -45,6 +45,7 @@ func Build(cfg models.Config, logger *zap.Logger, db *gorm.DB) http.Handler {
 	healthHandler := handlers.NewHealth(logger, db)
 	websiteHandler := handlers.NewWebisteHandler(logger, db)
 	occurrenceHandler := handlers.NewOccurrenceHandler(logger, db)
+	userHandler := handlers.NewUserHandler(logger, db, cfg.SteamAPIKey, cfg.JWTSecret, cfg.JWTExpiry, cfg.BaseURL)
 
 	/* v1 API Group */
 	logger.Info("Starting http v1 API group!")
@@ -78,6 +79,17 @@ func Build(cfg models.Config, logger *zap.Logger, db *gorm.DB) http.Handler {
 
 		// Occurrences — scoped to a website
 		v1.GET("/websites/:identification/occurrences", occurrenceHandler.ListOccurrencesByWebsite)
+
+		// Auth
+		v1.GET("/auth/steam", userHandler.SteamLogin)
+		v1.GET("/auth/steam/callback", userHandler.SteamCallback)
+		v1.POST("/auth/logout", userHandler.Logout)
+
+		// Protected — requires valid JWT
+		auth := v1.Group("/", middlewares.JWTAuth(cfg.JWTSecret))
+		{
+			auth.GET("/auth/me", userHandler.Me)
+		}
 
 	}
 

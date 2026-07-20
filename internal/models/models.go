@@ -6,10 +6,14 @@ import (
 	model_pagination "steamshark-api/internal/models/pagination"
 	model_response "steamshark-api/internal/models/response"
 	model_statistics "steamshark-api/internal/models/statistics"
+	model_user "steamshark-api/internal/models/users"
 	model_website "steamshark-api/internal/models/websites"
 )
 
 type (
+	/* USER related */
+	User = model_user.User
+
 	/* WEBISTE related */
 	Website    = model_website.Website
 	Occurrence = model_website.Occurrence

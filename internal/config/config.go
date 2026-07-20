@@ -23,10 +23,14 @@ func LoadConfig() (*models.Config, error) {
 	}
 
 	config := models.Config{
-		Env:      utils.GetEnv("APP_ENV", "development"),
-		Host:     utils.GetEnv("HOST", "0.0.0.0"),
-		Port:     utils.GetEnv("PORT", "8800"),
-		AdminKey: utils.GetEnv("ADMIN_SECRET_KEY", ""),
+		Env:         utils.GetEnv("APP_ENV", "development"),
+		Host:        utils.GetEnv("HOST", "0.0.0.0"),
+		Port:        utils.GetEnv("PORT", "8800"),
+		AdminKey:    utils.GetEnv("ADMIN_SECRET_KEY", ""),
+		BaseURL:     utils.GetEnv("BASE_URL", "http://localhost:8800"),
+		SteamAPIKey: utils.GetEnv("STEAM_API_KEY", ""),
+		JWTSecret:   utils.GetEnv("JWT_SECRET", ""),
+		JWTExpiry:   utils.GetEnv("JWT_EXPIRY", "24h"),
 		// default to databases/steamshark.db relative to the app WORKDIR
 		DBHost:     utils.GetEnv("DB_HOST", "steamshark-db"), // docker service name
 		DBPort:     utils.GetEnv("DB_PORT", "5432"),

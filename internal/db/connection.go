@@ -24,7 +24,7 @@ func InitDB(cfg *models.Config) (*gorm.DB, error) {
 		return nil, errors.New("failed to connect to postgres")
 	}
 
-	if err := db.AutoMigrate(&models.Website{}, &models.Occurrence{}); err != nil {
+	if err := db.AutoMigrate(&models.Website{}, &models.Occurrence{}, &models.User{}); err != nil {
 		return nil, fmt.Errorf("failed to run migrations: %w", err)
 	}
 
