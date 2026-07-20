@@ -53,6 +53,21 @@ CREATE TABLE IF NOT EXISTS occurrences (
 
 CREATE INDEX IF NOT EXISTS idx_occurrences_website_id ON occurrences(website_id);
 
+-- USERS TABLE
+CREATE TABLE IF NOT EXISTS users (
+  id text PRIMARY KEY,
+  steam_id text NOT NULL,
+  display_name text NOT NULL DEFAULT '',
+  avatar_url text NOT NULL DEFAULT '',
+  role text NOT NULL DEFAULT 'user',
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+
+  CHECK (role IN ('user','admin'))
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS uni_users_steam_id ON users(steam_id);
+
 -- UPDATED_AT trigger function
 CREATE OR REPLACE FUNCTION set_updated_at()
 RETURNS trigger AS $$

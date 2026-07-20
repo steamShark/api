@@ -17,6 +17,10 @@ services:
       - POSTGRES_DB=${POSTGRES_DB:-steamshark}
       - DB_SSLMODE=${DB_SSLMODE:-disable}
       - ADMIN_SECRET_KEY=${ADMIN_SECRET_KEY:-adminkey}
+      - BASE_URL=${BASE_URL:-http://localhost:8800}
+      - STEAM_API_KEY=${STEAM_API_KEY:-key}
+      - JWT_SECRET=${JWT_SECRET:-jwt_secret}
+      - JWT_EXPIRY=${JWT_EXPIRY:-24h}
     ports:
       - 8800:8800
     networks:
