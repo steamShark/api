@@ -1,0 +1,35 @@
+meta {
+  name: steamCallback
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{URL}}{{API_HANDLER}}/auth/steam/callback
+  body: none
+  auth: none
+}
+
+params:query {
+  openid.ns: http://specs.openid.net/auth/2.0
+  openid.mode: id_res
+  openid.op_endpoint: https://steamcommunity.com/openid/login
+  openid.claimed_id: https://steamcommunity.com/openid/id/YOUR_STEAM_ID
+  openid.identity: https://steamcommunity.com/openid/id/YOUR_STEAM_ID
+  openid.return_to: {{URL}}/api/v1/auth/steam/callback
+  openid.response_nonce:
+  openid.assoc_handle:
+  openid.signed:
+  openid.sig:
+}
+
+settings {
+  encodeUrl: true
+}
+
+docs {
+  This endpoint is called automatically by Steam after login.
+  Do NOT call this manually — use steamLogin to get the URL, open it
+  in a browser, and Steam will hit this callback for you.
+  The response contains `token` — copy it into the JWT_TOKEN env var.
+}

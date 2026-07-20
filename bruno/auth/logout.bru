@@ -1,0 +1,20 @@
+meta {
+  name: logout
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{URL}}{{API_HANDLER}}/auth/logout
+  body: none
+  auth: none
+}
+
+settings {
+  encodeUrl: true
+}
+
+docs {
+  Stateless logout — the server just returns success.
+  The frontend is responsible for discarding the JWT token.
+}

@@ -1,0 +1,24 @@
+meta {
+  name: me
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{URL}}{{API_HANDLER}}/auth/me
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{JWT_TOKEN}}
+}
+
+settings {
+  encodeUrl: true
+}
+
+docs {
+  Returns the current authenticated user's profile.
+  Requires a valid JWT in JWT_TOKEN env var.
+}

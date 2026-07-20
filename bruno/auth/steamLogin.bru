@@ -1,0 +1,21 @@
+meta {
+  name: steamLogin
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{URL}}{{API_HANDLER}}/auth/steam
+  body: none
+  auth: none
+}
+
+settings {
+  encodeUrl: true
+}
+
+docs {
+  Returns the Steam OpenID redirect URL.
+  Open the returned `url` in a browser to log in with Steam.
+  Steam will redirect back to /auth/steam/callback with the assertion params.
+}
